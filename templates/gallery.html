@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Silhouette · Gallery</title>
+  <style>
+    /* ----- dark Apple design system ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #000000;
+      color: #f5f5f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+      line-height: 1.47059;
+      font-weight: 400;
+      letter-spacing: -0.022em;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* main container */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ----- frosted navbar (dark) ----- */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background-color: rgba(0, 0, 0, 0.6);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      margin-bottom: 40px;
+    }
+
+    .brand {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff, #a1a1a6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: default;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #f5f5f7;
+      font-size: 1rem;
+      font-weight: 400;
+      opacity: 0.7;
+      transition: opacity 0.2s ease, color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      opacity: 1;
+      color: #2997ff; /* apple blue in dark mode */
+    }
+
+    /* hero header */
+    .hero {
+      margin-bottom: 56px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 3.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(150deg, #ffffff, #8e8e93);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .hero p {
+      font-size: 1.3rem;
+      font-weight: 350;
+      color: #98989d;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* gallery grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 32px 24px;
+      margin-bottom: 80px;
+    }
+
+    .gallery-item {
+      list-style: none;
+    }
+
+    .image-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 24px;
+      overflow: hidden;
+      background-color: #1c1c1e;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(255, 255, 255, 0.02);
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+
+    .image-wrapper:hover {
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.8), 0 8px 12px rgba(255, 255, 255, 0.02);
+    }
+
+    .image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.2, 0.75, 0.3, 1);
+    }
+
+    .image-wrapper:hover img {
+      transform: scale(1.04);
+    }
+
+    .item-caption {
+      margin-top: 12px;
+      padding: 0 4px;
+    }
+
+    .item-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #f5f5f7;
+      line-height: 1.3;
+    }
+
+    .item-sub {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: #8e8e93;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* footer */
+    .footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 32px 0 40px;
+      text-align: center;
+      color: #8e8e93;
+      font-size: 0.9rem;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    /* ---------- lightbox (dark + loader) ---------- */
+    #lightbox-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      background-color: #0a0a0c;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 40px 70px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* image container with loader */
+    .lightbox-image-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 300px;
+      min-height: 300px;
+    }
+
+    .lightbox-image {
+      display: block;
+      max-width: 100%;
+      max-height: 80vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 24px 24px 0 0;
+      background-color: #121214;
+      opacity: 0;
+      transition: opacity 0.3s ease-in;
+    }
+
+    .lightbox-image.loaded {
+      opacity: 1;
+    }
+
+    /* loader spinner (apple style) */
+    .loader-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      border-top: 3px solid #2997ff;
+      border-radius: 50%;
+      animation: spin 1s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .lightbox-caption {
+      background-color: rgba(20, 20, 22, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      width: 100%;
+      text-align: center;
+      padding: 18px 24px;
+      font-size: 1.2rem;
+      font-weight: 450;
+      color: #f5f5f7;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .close-lightbox {
+      position: absolute;
+      top: 18px;
+      right: 24px;
+      background: rgba(30, 30, 32, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 30px;
+      font-size: 32px;
+      line-height: 1;
+      color: #f5f5f7;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1010;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .close-lightbox:hover {
+      background: rgba(60, 60, 65, 0.9);
+    }
+
+    body.no-scroll {
+      overflow: hidden;
+    }
+
+    /* mobile */
+    @media (max-width: 640px) {
+      .navbar {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px 0 8px;
+      }
+      .nav-links {
+        gap: 32px;
+      }
+      .hero h1 {
+        font-size: 2.4rem;
+      }
+      .hero p {
+        font-size: 1.1rem;
+        padding: 0 12px;
+      }
+      .gallery-grid {
+        gap: 24px 16px;
+      }
+      .lightbox-caption {
+        font-size: 1rem;
+        padding: 14px 18px;
+      }
+      .close-lightbox {
+        top: 12px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- dark mode navbar (english) -->
+  <div class="container">
+    <nav class="navbar">
+      <div class="brand">◌ Silhouette</div>
+      <ul class="nav-links">
+        <li><a href="#">Works</a></li>
+        <li><a href="#">Story</a></li>
+        <li><a href="#">Connect</a></li>
+      </ul>
+    </nav>
+
+    <header class="hero">
+      <h1>Moments in Monochrome</h1>
+      <p>Dark elegance · personal gallery</p>
+    </header>
+
+    <!-- gallery grid (english captions) -->
+    <ul class="gallery-grid">
+      <!-- 1 -->
+      <li class="gallery-item">
+        <div class="image-wrapper">
+          <img src="https://picsum.photos/id/1015/400/400" 
+               data-fullsrc="https://picsum.photos/id/1015/1200/1200" 
+               data-caption="Dawn over the Dolomites" 
+               alt="Mountain mist" 
+               class="gallery-img">
+        </div>
+        <div class="item-caption">
+          <span class="item-title">Alpine glow</span>
+          <span class="item-sub">Dolomites, Italy</span>
+        </div>
+      </li>
+      <!-- 2 -->
+      <li class="gallery-item">
+        <div class="image-wrapper">
+          <img src="https://picsum.photos/id/1018/400/400" 
+               data-fullsrc="https://picsum.photos/id/1018/1200/1200" 
+               data-caption="Winding river, Iceland" 
+               alt="Green valley river" 
+               class="gallery-img">
+        </div>
+        <div class="item-caption">
+          <span class="item-title">Arctic veins</span>
+          <span class="item-sub">Icelandic highlands</span>
+        </div>
+      </li>
+      <!-- 3 -->
+      <li class="gallery-item">
+        <div class="image-wrapper">
+          <img src="https://picsum.photos/id/1043/400/400" 
+               data-fullsrc="https://picsum.photos/id/1043/1200/1200" 
+               data-caption="Hidden waterfall, Oregon" 
+               alt="Forest waterfall" 
+               class="gallery-img">
+        </div>
+        <div class="item-caption">
+          <span class="item-title">Secret cascade</span>
+          <span class="item-sub">Columbia River Gorge</span>
+        </div>
+      </li>
+      <!-- 4 -->
+      <li class="gallery-item">
+        <div class="image-wrapper">
+          <img src="https://picsum.photos/id/1084/400/400" 
+               data-fullsrc="https://picsum.photos/id/1084/1200/1200" 
+               data-caption="Winter hut, Zermatt" 
+               alt="Snowy cabin" 
+               class="gallery-img">
+        </div>
+        <div class="item-caption">
+          <span class="item-title">Silent lodge</span>
+          <span class="item-sub">Swiss Alps</span>
+        </div>
+      </li>
+      <!-- 5 -->
+      <li class="gallery-item">
+        <div class="image-wrapper">
+          <img src="https://picsum.photos/id/110/400/400" 
+               data-fullsrc="https://picsum.photos/id/110/1200/1200" 
+               data-caption="Afternoon light, Tuscany" 
+               alt="Cat in sunlight" 
+               class="gallery-img">
+        </div>
+        <div class="item-caption">
+          <span class="item-title">Golden hour</span>
+          <span class="item-sub">Tuscan countryside</span>
+        </div>
+      </li>
+      <!-- 6 -->
+      <li class="gallery-item">
+        <div class="image-wrapper">
+          <img src="https://picsum.photos/id/116/400/400" 
+               data-fullsrc="https://picsum.photos/id/116/1200/1200" 
+               data-caption="Autumn leaf, Kyoto" 
+               alt="Close up of leaf" 
+               class="gallery-img">
+        </div>
+        <div class="item-caption">
+          <span class="item-title">Falling leaves</span>
+          <span class="item-sub">Kyoto, Japan</span>
+        </div>
+      </li>
+      <!-- 7 -->
+      <li class="gallery-item">
+        <div class="image-wrapper">
+          <img src="https://picsum.photos/id/121/400/400" 
+               data-fullsrc="https://picsum.photos/id/121/1200/1200" 
+               data-caption="Tropical veins, Singapore" 
+               alt="Plant leaves" 
+               class="gallery-img">
+        </div>
+        <div class="item-caption">
+          <span class="item-title">Green geometry</span>
+          <span class="item-sub">Gardens by the Bay</span>
+        </div>
+      </li>
+      <!-- 8 -->
+      <li class="gallery-item">
+        <div class="image-wrapper">
+          <img src="https://picsum.photos/id/128/400/400" 
+               data-fullsrc="https://picsum.photos/id/128/1200/1200" 
+               data-caption="Wood texture, Stockholm" 
+               alt="Abstract wood" 
+               class="gallery-img">
+        </div>
+        <div class="item-caption">
+          <span class="item-title">Raw grain</span>
+          <span class="item-sub">Design studio, Stockholm</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2025 Silhouette · dark gallery. Images from Picsum.</p>
+    </div>
+  </footer>
+
+  <!-- lightbox with loading spinner (buffered) -->
+  <div id="lightbox-modal" role="dialog" aria-modal="true" aria-label="Image preview">
+    <div class="lightbox-content">
+      <div class="lightbox-image-container">
+        <img class="lightbox-image" src="" alt="" id="lightbox-img">
+        <div class="loader-spinner" id="lightbox-loader"></div>
+      </div>
+      <div class="lightbox-caption" id="lightbox-caption"></div>
+      <button class="close-lightbox" aria-label="Close preview" id="close-lightbox-btn">✕</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const modal = document.getElementById('lightbox-modal');
+      const modalImg = document.getElementById('lightbox-img');
+      const modalCaption = document.getElementById('lightbox-caption');
+      const loader = document.getElementById('lightbox-loader');
+      const closeBtn = document.getElementById('close-lightbox-btn');
+      const galleryImages = document.querySelectorAll('.gallery-img');
+      const body = document.body;
+
+      // reset lightbox before showing new image (hide loader & show nothing)
+      function resetLightbox() {
+        modalImg.classList.remove('loaded');
+        modalImg.src = '';
+        modalImg.alt = '';
+        loader.style.display = 'block';   // ensure spinner visible
+        modalCaption.textContent = '';
+      }
+
+      // open lightbox with loading indicator
+      function openLightbox(fullSrc, caption) {
+        resetLightbox();
+
+        // set caption immediately
+        modalCaption.textContent = caption || '';
+
+        // set image src and handle load/error
+        modalImg.src = fullSrc || '';
+        modalImg.alt = caption || 'Gallery image';
+
+        // when image loads, hide spinner and show image
+        modalImg.onload = function() {
+          modalImg.classList.add('loaded');
+          loader.style.display = 'none';
+        };
+
+        // if error, hide spinner and show error message in caption
+        modalImg.onerror = function() {
+          loader.style.display = 'none';
+          modalCaption.textContent = (caption ? caption + ' — ' : '') + 'failed to load';
+        };
+
+        // display modal
+        modal.style.display = 'flex';
+        body.classList.add('no-scroll');
+      }
+
+      // close lightbox
+      function closeLightbox() {
+        modal.style.display = 'none';
+        modalImg.onload = null;      // clean up
+        modalImg.onerror = null;
+        resetLightbox();              // clear src, hide spinner for next time
+        body.classList.remove('no-scroll');
+      }
+
+      // attach click events to gallery images
+      galleryImages.forEach(img => {
+        img.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const fullSrc = img.dataset.fullsrc;
+          const caption = img.dataset.caption || img.alt || 'Untitled';
+          openLightbox(fullSrc, caption);
+        });
+      });
+
+      // close button
+      closeBtn.addEventListener('click', closeLightbox);
+
+      // click background to close
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeLightbox();
+        }
+      });
+
+      // prevent closing when clicking on content
+      const content = document.querySelector('.lightbox-content');
+      content.addEventListener('click', (e) => e.stopPropagation());
+
+      // ESC key
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+          closeLightbox();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
